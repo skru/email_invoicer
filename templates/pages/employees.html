@@ -1,0 +1,214 @@
+{% extends "pages/page.html" %}
+
+{% load mezzanine_tags %}
+
+{% block main %}{{ block.super }}
+
+<div class='container'>
+    <div class='row'>
+        <div class='col-md-8'>
+            <h2>
+                Employees:
+            </h2>
+            {% if sitewide.employees %}
+                {% for employee in  sitewide.employees %}
+                        
+            
+                        <form class="form-horizontal row" role="form" method="post" action="" name='edit_employee_form' id='{{ employee.id }}' >{% csrf_token %}
+                        <fieldset>
+
+                            <div class="form-group" >
+
+
+                                        <div class='col-md-12'>
+                                            <div class='row'>
+                                                <div class="col-md-2 no-pad">
+                                                <input type="text" class="form-control" value="{{employee.name}}" name='employee' readonly>
+                                                </div>
+
+                                                <div class="col-md-4 no-pad" readonly>
+                                                    <input type="text" class="form-control" name='email' value="{{ employee.email }}" readonly>
+                                                </div>
+
+                                                <div class='col-md-4 no-pad'>
+                                                    <input type="text" class="form-control" value="{{ employee.phone }}" name='phone' readonly>
+
+                                                </div>
+                                                <input type="hidden" class="form-control" value="{{employee.id}}" name='employee_id' >
+
+                                                <button onclick="editform({{ employee.id }});" id='editbutton{{employee.id}}' type="button" class="btn btn-default col-md-1" name='edit_employee'>edit</button>
+                                                <button class="btn btn-default col-md-1" type='button' onclick='emp_work_list_on({{employee.id}})' id='emp_work_btn{{employee.id}}'><span class="caret"></span></button>
+                                            </div>
+                                            <div class='row'>
+                                                <button type="submit" class="btn btn-danger col-md-2 pull-right edit-btns{{employee.id}}" name='submit' onclick=' return clicked({{ employee.id }});' style='display:none;'>Delete</button>
+                                                <button type="submit" class="btn btn-default col-md-2 pull-right edit-btns{{employee.id}}" name='update' style='display:none;'>Update</button>
+                                                
+                                                
+                                            </div>
+                                        </div>
+                                
+                                
+                                        
+                            </div>
+                        </fieldset>
+                    </form>
+                        <div class='row' id='empl_work_list{{employee.id}}' style='display:none; width: 100%;'>
+                            <div class='col-md-12'>
+                                {% for work in employee.workorder.all|dictsortreversed:"time_date"  %}
+                       
+                        
+                         <form class="form-horizontal row" role="form" method="post" action="" name='' id='{{ work.id }}' {% if not work.completed %} style=' border: 1px solid rgba(255, 150, 0, 0.42); background: rgba(255, 150, 0, 0.42); margin-top: 5px;' {% else %} style='border: 1px solid rgba(0, 128, 0, 0.37); background: rgba(0, 128, 0, 0.37);  margin-top: 5px;'{% endif %}>{% csrf_token %}
+                            <fieldset>
+
+                                <div class="form-group" >
+
+
+                                          
+
+                                            <div class="col-md-4 no-pad" readonly>
+                                                <input type="text" class="form-control" name='title' value="{{ work.title }}" readonly>
+                                            </div>
+
+                                            <div class='col-md-3 no-pad'>
+
+                                             
+                                                <div id='formdatetimeoff{{work.id}}' style='display: inline-block;' class="input-group">
+                                                    <input class="form-control" size="16" value="{{ work.time_date|date:'Y-m-d H:i' }}" readonly>
+                                                    <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
+                                                </div>
+                                            </div>
+                                            <div class='col-md-4 no-pad'>
+                                                <input type="text" class="form-control" value="{{ work.address }}" name='address' readonly>
+                                            </div>
+                                           
+                                          
+                                        </div>
+                                        <div class='row'>
+                                            <div class='col-md-11 no-pad ' >
+                                                <textarea rows="3" class="form-control" id="postalAddress" name='description' readonly>{{ work.description }}</textarea>
+                                            </div>
+                                             <div class="col-md-1 no-pad ">
+                                                <input type="text" class="form-control" name='price' value="{{ work.price }}" readonly>
+                                            </div>
+                                   
+
+                                    <input type="hidden" class="form-control" id="work-form-name" name='work_completed' value="{{ work.completed }}">
+                                    <input type="hidden" class="form-control" id="work-form-name" name='work_id' value="{{ work.id }}">
+                                </div>
+                            </fieldset>
+                        </form>
+                        {% endfor %}
+                            </div>
+            </div>
+                        <br>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class='col-md-4'>
+            <h2>
+                New Employee:
+            </h2>
+
+
+
+            {% if request.GET.sent %}
+
+                {{ page.form.response|richtext_filters|safe }}
+
+            {% else %}
+                {% with page.form as page_form %}
+
+                {{ page_form.content|richtext_filters|safe }}
+
+                {% endwith %}
+
+                {% errors_for form %}
+
+                <form class="mezzanine-form" method="post"{% if form.is_multipart %} enctype="multipart/form-data"{% endif %}>
+                    {% fields_for form %}
+                    <div class="form-actions">
+                        <input class="btn btn-primary btn-lg" type="submit" name='new_emp'>
+                    </div>
+                </form>
+            {% endif %}
+
+
+        </div>
+    </div>
+</div>
+
+	
+
+
+{% endblock %}
+ {% block extra_js %} {{ block.super }}
+<script>
+    $(document).ready(function(){
+        
+  });
+    
+    function clicked(el) {
+       if (confirm('Are you Sure you want to delete the employee \n and all their work orders?')) {
+           var form = document.getElementById(el);
+           $(el).submit();
+       } else {
+           return false;
+       }
+    }
+    
+    var editform = function(el) {
+        var form = document.getElementById(el);
+  
+        var elements = form.elements;
+        for (var i = 0, len = elements.length; i < len; ++i) {
+            if (elements[i].name != 'employee') {
+                //console.log(elements[i].parent())
+                elements[i].readOnly = false;
+
+            }
+
+        }
+        var button = $('#editbutton' + el)
+        //console.log(button.nodeType)
+        $('#editbutton' + el).attr('onclick', '');
+        $('#editbutton' + el).attr('onclick', 'disableform(' + el + ');');
+
+        $('#formdatetimeon' + el).css('display', 'inline-block');
+        $('#formdatetimeoff' + el).css('display', 'none');
+
+        $('.edit-btns' + el).css('display', 'inline-block');
+
+
+    };
+    var disableform = function(el) {
+        var form = document.getElementById(el);
+        //console.log(form)
+        var elements = form.elements;
+        for (var i = 0, len = elements.length; i < len; ++i) {
+            elements[i].readOnly = true;
+        }
+        var button = $('#editbutton' + el)
+        //console.log(button.nodeType)
+        $('#editbutton' + el).attr('onclick', '');
+        $('#editbutton' + el).attr('onclick', 'editform(' + el + ');');
+
+        $('#formdatetimeon' + el).css('display', 'none');
+        $('#formdatetimeoff' + el).css('display', 'inline-block');
+
+        $('.edit-btns' + el).css('display', 'none');
+    };
+    
+    var emp_work_list_on = function(el) {
+        console.log(el)
+        $('#emp_work_btn' + el).attr('onclick', '');
+        $('#emp_work_btn' + el).attr('onclick', 'emp_work_list_off(' + el + ');');
+        $('#empl_work_list' + el).css('display', 'inline-block')
+    }
+    var emp_work_list_off = function(el) {
+        console.log(el)
+        $('#emp_work_btn' + el).attr('onclick', '');
+        $('#emp_work_btn' + el).attr('onclick', 'emp_work_list_on(' + el + ');');
+        $('#empl_work_list' + el).css('display', 'none')
+    }
+</script>
+{% endblock %}

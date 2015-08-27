@@ -1,0 +1,66 @@
+{% extends "pages/page.html" %}
+
+{% load mezzanine_tags staticfiles %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static "mezzanine/css/magnific-popup.css" %}">
+{% endblock extra_css %}
+
+{% block main %}
+{{ block.super }}
+
+
+
+<div class="gallery row">
+	<div class='h-line'></div>
+	<div class='col-md-12'>
+		
+	
+		<h4 class='page-title'><strong>Gallery</strong></h4>
+
+
+
+		
+		
+		<div class='row'>
+		{% for work in sitewide.works.all %}	
+			<div class='col-md-12'>
+				<h4>{{work.work_title}}</h4>
+				<div class='row'>
+					{% for image in work.workimage.all %}
+					<div class='col-md-2 col-sm-2 col-xs-2' style='padding:0;'>
+						<a class="thumbnail" rel="#image-{{ image.id }}" title="{{ image.description }}" href="{{ image.file.url }}">
+							<img src="{{ MEDIA_URL }}{% thumbnail image.file 196 196 %}" class=' '>
+						</a>
+					</div>
+				<!--{{image.description}}-->
+					{% endfor %}
+
+				
+				</div>
+				</div>
+			{% endfor %}
+			</div>
+		
+		</div>
+		
+<div class='h-line'></div>
+</div>
+	</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script src="{% static "mezzanine/js/magnific-popup.js" %}"></script>
+<script>
+$(document).ready(function() {
+    $('.gallery').magnificPopup({
+        delegate: 'a',
+        type: 'image',
+        gallery: {
+            enabled: true,
+        }
+    });
+});
+</script>
+{% endblock %}
