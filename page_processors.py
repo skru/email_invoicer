@@ -12,6 +12,21 @@ from django.forms import extras
 from datetimewidget.widgets import DateTimeWidget
 from django.forms import TextInput, Textarea
 
+#pdf imports
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
+from reportlab.pdfgen import canvas
+
+
+
+from reportlab.platypus import *
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.rl_config import defaultPageSize
+from reportlab.lib.units import inch
+from reportlab.lib.pagesizes import letter, landscape
+
     
 
 class NewEmployeeForm(forms.Form):
@@ -20,7 +35,7 @@ class NewEmployeeForm(forms.Form):
     phone = forms.CharField()
     
 class NewWorkOrderForm(forms.Form):
-    employee = forms.ModelChoiceField(queryset=Employee.objects.all())
+    employee = forms.ModelMultipleChoiceField(queryset=Employee.objects.all(), widget=forms.CheckboxSelectMultiple())
     title = forms.CharField(required=True)
     description = forms.CharField( widget=forms.Textarea(attrs={'rows': 5, 'cols': 100}),required=False)
     completed = forms.BooleanField(required=False)
@@ -126,6 +141,9 @@ def newworkorder_form(request, page):
             html_content = "<html><body style='background:rgb(239, 247, 249); text-align: center;'><h1 style='color:#2FB2C7; text-align:center;'>Resolve Residential Work Order</h1><br><h2> %s </h2><br><h3>Hi <strong> %s </strong></h3><br><p> %s </p><br><p> %s </p><p> %s </p><br><p><strong>  %s</strong></p><br><address style='text-align:center;'><strong>Resolve Residential Limited</strong><br>Registered Office: Star House, Star Hill, Rochester, Kent ME1 1UX<br>Company Registration No: 9412372<br>VAT NO; 206 3534 35<br></address></body></html>" % (title, emp_name, description, address, time_date, price)
             msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
             msg.attach_alternative(html_content, "text/html")
+			
+            pdf=generate_pdf(title, emp_name, description, address, time_date, price)
+            msg.attach(title+'_'+time_date+',pdf',pdf,'application/pdf')
             msg.send()
             #email_sent = request.POST['send_email'] or None
             
@@ -155,34 +173,60 @@ def newworkorder_form(request, page):
         else:
             form = NewWorkOrderForm(request.POST)
             if form.is_valid():
-                p = form.cleaned_data['employee']
+                p_list = form.cleaned_data['employee']
+                for employee in p_list:
+                    
                 
-                p.workorder.create(title = form.cleaned_data['title'],description = form.cleaned_data['description'],completed = form.cleaned_data['completed'],time_date = request.POST['time_date'],price = form.cleaned_data['price'],email_sent = form.cleaned_data['send_email'],address = form.cleaned_data['address'])
-                p.save()
-                email_send = form.cleaned_data['send_email']
-                if email_send == True:
-                    from django.core.mail import send_mail
-                    from django.core.mail import EmailMultiAlternatives
-                    
-                    emp = Employee.objects.get(pk = p.id)
-                    emp_name = emp.name
-                    email = emp.email
+                    employee.workorder.create(title = form.cleaned_data['title'],description = form.cleaned_data['description'],completed = form.cleaned_data['completed'],time_date = request.POST['time_date'],price = form.cleaned_data['price'],email_sent = form.cleaned_data['send_email'],address = form.cleaned_data['address'])
+                    employee.save()
+                    email_send = form.cleaned_data['send_email']
+                    if email_send == True:
+                        from django.core.mail import send_mail
+                        from django.core.mail import EmailMultiAlternatives
 
-                    title = request.POST['title'] or None
-                    description = request.POST['description'] or None
-                    
-                    time_date = request.POST['time_date'] or None
-                    address = request.POST['address'] or None
-                    price = request.POST['price'] or None
+                        emp = Employee.objects.get(pk = employee.id)
+                        emp_name = emp.name
+                        email = emp.email
 
-                    subject, from_email, to = 'Resolve Work Order', 'bapp@bapp.skru.webfactional.com', 'skruproxy@gmail.com'
-                    text_content = "%s \n Hi %s \n %s \n Address: %s \n Time and date: %s  \n Price: %s \n Resolve Residential Limited \n enquiries@resolveresidential.co.uk \n Registered Office: Star House, Star Hill, Rochester, Kent ME1 1UX" % (title, emp_name, description, address, time_date, price)
-                    html_content = "<html><body style='background:rgb(239, 247, 249); text-align: center;'><h1 style='color:#2FB2C7; text-align:center;'>Resolve Residential Work Order</h1><br><h2> %s </h2><br><h3>Hi <strong> %s </strong></h3><br><p> %s </p><br><p> %s </p><p> %s </p><br><p><strong>  %s</strong></p><br><address style='text-align:center;'><strong>Resolve Residential Limited</strong><br>Registered Office: Star House, Star Hill, Rochester, Kent ME1 1UX<br>Company Registration No: 9412372<br>VAT NO; 206 3534 35<br></address></body></html>" % (title, emp_name, description, address, time_date, price)
-                    msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
-                    msg.attach_alternative(html_content, "text/html")
-                    msg.send()
+                        title = request.POST['title'] or None
+                        description = request.POST['description'] or None
+
+                        time_date = request.POST['time_date'] or None
+                        address = request.POST['address'] or None
+                        price = request.POST['price'] or None
+
+                        subject, from_email, to = 'Resolve Work Order', 'bapp@bapp.skru.webfactional.com', 'skruproxy@gmail.com'
+                        text_content = "%s \n Hi %s \n %s \n Address: %s \n Time and date: %s  \n Price: %s \n Resolve Residential Limited \n enquiries@resolveresidential.co.uk \n Registered Office: Star House, Star Hill, Rochester, Kent ME1 1UX" % (title, emp_name, description, address, time_date, price)
+                        html_content = "<html><body style='background:rgb(239, 247, 249); text-align: center;'><h1 style='color:#2FB2C7; text-align:center;'>Resolve Residential Work Order</h1><br><h2> %s </h2><br><h3>Hi <strong> %s </strong></h3><br><p> %s </p><br><p> %s </p><p> %s </p><br><p><strong>  %s</strong></p><br><address style='text-align:center;'><strong>Resolve Residential Limited</strong><br>Registered Office: Star House, Star Hill, Rochester, Kent ME1 1UX<br>Company Registration No: 9412372<br>VAT NO; 206 3534 35<br></address></body></html>" % (title, emp_name, description, address, time_date, price)
+                        msg = EmailMultiAlternatives(subject, text_content, from_email, [to])
+                        msg.attach_alternative(html_content, "text/html")
+                        pdf=generate_pdf(title, emp_name, description, address, time_date, price)
+                        msg.attach(title+'_'+time_date+',pdf',pdf,'application/pdf')
+                        msg.send()
                     
                 
                 return redirect('/work-orders')
     
     return {"form": form}
+
+def generate_pdf(title, emp_name, description, address, time_date, price):
+    styles = getSampleStyleSheet()
+    header = Paragraph("Resolve Residential Invoice", styles["Heading1"])
+    title = Paragraph(title, styles["Heading1"])
+    emp_name = Paragraph(emp_name, styles["Normal"])
+    description = Paragraph(description, styles["Normal"])
+    address = Paragraph(address, styles["Normal"])
+    time_date = Paragraph(time_date, styles["Normal"])
+    price = Paragraph(price, styles["Normal"])
+    footer = Paragraph('Star House, Star Hill, Rochester, Kent ME1 1UX (+44) 01634 913113', styles["Normal"])
+     
+    Elements = [header, title, emp_name, description, address, time_date, price, footer]
+ 
+    buffer=StringIO()
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+    doc.build(Elements)
+    pdf=buffer.getvalue()
+    buffer.close() 
+    return pdf
+
+    #c.save()

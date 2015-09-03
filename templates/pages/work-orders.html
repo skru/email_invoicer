@@ -16,66 +16,86 @@
         <form style='display:none;' id='new-order-form' class="mezzanine-form form-horizontal " method="post" {% if form.is_multipart %} enctype="multipart/form-data" {% endif %}>
                 {% csrf_token %}
                 <fieldset>
-                    <div class="form-group">
+                    <div class="form-group" style='background-color: #F3F3F3;'>
                       
                         <!--<label for="{{ form.employee.id_for_label }}">Employee:</label>
                 {{form.employee}}-->
                         <div class='row'>
-                            <div class="col-md-1 no-pad">
+                            <div class="col-md-2" style='margin-top: 2px;'>
                                 
                                 {{form.employee.label}}
-                               {{form.employee}}
+                               
+                                
+                                
+                                    {% for radio in form.employee %}
+                                    <div class='row employee'>
+                                    <div class='col-xs-2 emp-tag'>
+                                         {{ radio.tag }}
+                                    </div>
+                                    <div class='col-xs-10 emp-tag'>
+                                        {{ radio.choice_label }}
+                                    </div>
+                                        
+                                    </div>
+                                    {% endfor %}
+                                
+                            
 
                                 {{form.employee.errors}}
                             </div>
 
-                            <div class="col-md-4 no-pad">
-                                {{form.title.label}}
-                                {{form.title}}
-                                {{form.title.errors}}
-                            </div>
+                            <div class='col-md-10'>
+                                <div class='row'>
+                                    <div class="col-md-4 no-pad">
+                                        {{form.title.label}}
+                                        {{form.title}}
+                                        {{form.title.errors}}
+                                    </div>
 
-                            <div class="input-group date form_datetime col-md-2  no-pad" data-date="" data-date-format="yyyy-mm-dd HH:ii" data-link-field="dtp_input1">
-                                {{form.time_date.label}}
-                                
-                                <input class="form-control" size="16" type="text" name='time_date' value="" readonly>
-                                {{form.time_date.errors}}
-                                <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
-                                <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
-                                
-                               
-                            </div>
+                                    <div class="input-group date form_datetime col-md-3  no-pad" data-date="" data-date-format="yyyy-mm-dd HH:ii" data-link-field="dtp_input1">
+                                        {{form.time_date.label}}
+
+                                        <input class="form-control" size="16" type="text" name='time_date' value="" readonly>
+                                        {{form.time_date.errors}}
+                                        <span class="input-group-addon"><span class="glyphicon glyphicon-remove"></span></span>
+                                        <span class="input-group-addon"><span class="glyphicon glyphicon-th"></span></span>
+
+
+                                    </div>
+
+
+                                    <div class='col-md-3 no-pad'>
+                                        {{form.address.label}}
+                                        {{form.address}}
+                                    </div>
+                                    <div class="col-md-2 no-pad">
+                                        {{form.price.label}}
+                                        {{form.price}}
+                                    </div>
+                                </div>
+                                <div class='row'>
                             
+                                    <div class='col-md-8  no-pad'>
+                                        {{form.description.label}}
+                                        {{form.description}}
+                                    </div>
+                                    <div class="col-md-1 no-pad">
+                                        <div style='text-align:center !important;'>{{form.completed.label}}</div>
+                                        {{form.completed}}
+                                    </div>
+                                    <div class="col-md-1 no-pad">
+                                        <div style='text-align:center !important;'>{{form.send_email.label}}</div>
+                                        {{form.send_email}}
+                                    </div>
 
-                            <div class='col-md-3 no-pad'>
-                                {{form.address.label}}
-                                {{form.address}}
-                            </div>
-                            <div class="col-md-2 no-pad">
-                                {{form.price.label}}
-                                {{form.price}}
+                                    <!--<input class=" col-md-1" type="submit" value="submit">-->
+                                    <br>
+                                    <button type="submit" class="btn btn-default col-md-2 no-pad" name='submit'>Add Order</button>
+
+                                </div>
                             </div>
                         </div>
-                        <div class='row'>
-                            
-                            <div class='col-md-8 no-pad'>
-                                {{form.description.label}}
-                                {{form.description}}
-                            </div>
-                            <div class="col-md-1 no-pad">
-                                <div style='text-align:center !important;'>{{form.completed.label}}</div>
-                                {{form.completed}}
-                            </div>
-                            <div class="col-md-1 no-pad">
-                                <div style='text-align:center !important;'>{{form.send_email.label}}</div>
-                                {{form.send_email}}
-                            </div>
-
-                            <!--<input class=" col-md-1" type="submit" value="submit">-->
-                            <br>
-                            <button type="submit" class="btn btn-default col-md-2 no-pad" name='submit'>Add Order</button>
-                            
-                        </div>
+                        
                         
 
                         
